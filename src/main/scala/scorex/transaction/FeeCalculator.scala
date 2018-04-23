@@ -8,6 +8,7 @@ import scorex.transaction.FeeCalculator._
 import scorex.transaction.validation.ValidationError.{GenericError, InsufficientFee}
 import scorex.transaction.assets.{MassTransferTransaction, TransferTransaction}
 import scorex.transaction.smart.script.v1.ScriptV1
+import scorex.transaction.validation.ValidationError
 
 /**
   * Class to check, that transaction contains enough fee to put it to UTX pool
