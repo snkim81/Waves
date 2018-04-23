@@ -6,8 +6,8 @@ import scorex.transaction.assets._
 import scorex.transaction.assets.exchange.ExchangeTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.transaction.smart.SetScriptTransaction
-import scorex.transaction.versioned.VCreateAliasTransaction
-import scorex.transaction.versioned.assets.{VBurnTransaction, VIssueTransaction, VReissueTransaction, VersionedTransferTransaction}
+import scorex.transaction.modern.CreateAliasTx
+import scorex.transaction.modern.assets.{BurnTx, ReissueTx}
 
 import scala.util.{Failure, Success, Try}
 
@@ -39,10 +39,9 @@ object TransactionParsers {
     VersionedTransferTransaction,
     SetScriptTransaction,
     SmartIssueTransaction,
-    VIssueTransaction,
-    VReissueTransaction,
-    VBurnTransaction,
-    VCreateAliasTransaction
+    ReissueTx,
+    BurnTx,
+    CreateAliasTx
   ).flatMap { x =>
     x.supportedVersions.map { version =>
       ((x.typeId, version), x)

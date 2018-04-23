@@ -5,7 +5,7 @@ import com.wavesplatform.lang.v1.{FunctionHeader, ScriptComplexityCalculator}
 import com.wavesplatform.settings.FeesSettings
 import com.wavesplatform.state._
 import scorex.transaction.FeeCalculator._
-import scorex.transaction.ValidationError.{GenericError, InsufficientFee}
+import scorex.transaction.validation.ValidationError.{GenericError, InsufficientFee}
 import scorex.transaction.assets.{MassTransferTransaction, TransferTransaction}
 import scorex.transaction.smart.script.v1.ScriptV1
 
