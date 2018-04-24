@@ -38,7 +38,9 @@ object TransactionParsers {
 
   private val intermediate: Map[(Byte, Byte), TransactionParser] = Seq[TransactionParser](
     DataTransaction,
-    SmartIssueTransaction
+    SmartIssueTransaction,
+    VersionedTransferTransaction,
+    SetScriptTransaction,
   ).flatMap { x =>
     x.supportedVersions.map { version =>
       ((x.typeId, version), x)
@@ -79,7 +81,7 @@ object TransactionParsers {
     data.headOption
       .fold[Try[Byte]](Failure(new IllegalArgumentException("Can't find the significant byte: the buffer is empty")))(Success(_))
       .flatMap { headByte =>
-        if (headByte == 0) intermediateParseBytes(data) orElse modernParseBytes(data)
+        if (headByte == 0) modernParseBytes(data) orElse intermediateParseBytes(data)
         else oldParseBytes(headByte, data)
       }
 
@@ -110,7 +112,7 @@ object TransactionParsers {
       modern
         .get((typeId, version))
         .fold[Try[TransactionParser]](
-        Failure(new IllegalArgumentException(s"Unknown transaction type ($typeId) and version ($version) (modern encoding)")))(Success(_))
+          Failure(new IllegalArgumentException(s"Unknown transaction type ($typeId) and version ($version) (modern encoding)")))(Success(_))
         .flatMap(_.parseBytes(data))
     }
   }
