@@ -6,7 +6,7 @@ import scorex.transaction.assets._
 import scorex.transaction.assets.exchange.ExchangeTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.transaction.smart.SetScriptTransaction
-import scorex.transaction.modern.CreateAliasTx
+import scorex.transaction.modern.{CreateAliasTx, DataTx}
 import scorex.transaction.modern.assets.{BurnTx, IssueTx, ReissueTx, TransferTx}
 import scorex.transaction.modern.lease.{LeaseCancelTx, LeaseTx}
 import scorex.transaction.modern.smart.SetScriptTx
@@ -38,8 +38,6 @@ object TransactionParsers {
 
   private val intermediate: Map[(Byte, Byte), TransactionParser] = Seq[TransactionParser](
     DataTransaction,
-    VersionedTransferTransaction,
-    SetScriptTransaction,
     SmartIssueTransaction
   ).flatMap { x =>
     x.supportedVersions.map { version =>
@@ -55,7 +53,8 @@ object TransactionParsers {
     CreateAliasTx,
     LeaseTx,
     LeaseCancelTx,
-    SetScriptTx
+    SetScriptTx,
+    DataTx
   ).flatMap { x =>
     x.supportedVersions.map { version =>
       ((x.typeId, version), x)
