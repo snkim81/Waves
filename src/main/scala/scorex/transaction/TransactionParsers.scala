@@ -7,7 +7,7 @@ import scorex.transaction.assets.exchange.ExchangeTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.transaction.smart.SetScriptTransaction
 import scorex.transaction.modern.CreateAliasTx
-import scorex.transaction.modern.assets.{BurnTx, ReissueTx}
+import scorex.transaction.modern.assets.{BurnTx, IssueTx, ReissueTx, TransferTx}
 import scorex.transaction.modern.lease.{LeaseCancelTx, LeaseTx}
 import scorex.transaction.modern.smart.SetScriptTx
 
@@ -48,8 +48,10 @@ object TransactionParsers {
   }(collection.breakOut)
 
   private val modern: Map[(Byte, Byte), TransactionParser] = Seq[TransactionParser](
+    IssueTx,
     ReissueTx,
     BurnTx,
+    TransferTx,
     CreateAliasTx,
     LeaseTx,
     LeaseCancelTx,
@@ -78,7 +80,7 @@ object TransactionParsers {
     data.headOption
       .fold[Try[Byte]](Failure(new IllegalArgumentException("Can't find the significant byte: the buffer is empty")))(Success(_))
       .flatMap { headByte =>
-        if (headByte == 0) modernParseBytes(data)
+        if (headByte == 0) intermediateParseBytes(data) orElse modernParseBytes(data)
         else oldParseBytes(headByte, data)
       }
 
@@ -88,7 +90,7 @@ object TransactionParsers {
       .fold[Try[TransactionParser]](Failure(new IllegalArgumentException(s"Unknown transaction type (old encoding): '$tpe'")))(Success(_))
       .flatMap(_.parseBytes(data))
 
-  private def modernParseBytes(data: Array[Byte]): Try[Transaction] = {
+  private def intermediateParseBytes(data: Array[Byte]): Try[Transaction] = {
     if (data.length < 2)
       Failure(new IllegalArgumentException(s"Can't determine the type and the version of transaction: the buffer has ${data.length} bytes"))
     else {
@@ -96,7 +98,20 @@ object TransactionParsers {
       intermediate
         .get((typeId, version))
         .fold[Try[TransactionParser]](
-          Failure(new IllegalArgumentException(s"Unknown transaction type ($typeId) and version ($version) (modern encoding)")))(Success(_))
+          Failure(new IllegalArgumentException(s"Unknown transaction type ($typeId) and version ($version) (intermediate encoding)")))(Success(_))
+        .flatMap(_.parseBytes(data))
+    }
+  }
+
+  private def modernParseBytes(data: Array[Byte]): Try[Transaction] = {
+    if (data.length < 2)
+      Failure(new IllegalArgumentException(s"Can't determine the type and the version of transaction: the buffer has ${data.length} bytes"))
+    else {
+      val Array(_, typeId, version) = data.take(3)
+      modern
+        .get((typeId, version))
+        .fold[Try[TransactionParser]](
+        Failure(new IllegalArgumentException(s"Unknown transaction type ($typeId) and version ($version) (modern encoding)")))(Success(_))
         .flatMap(_.parseBytes(data))
     }
   }
